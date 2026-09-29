@@ -2,7 +2,7 @@
   {
     "id": "hayase.extension.fansubsru",
     "name": "Fansubs.ru (Russian)",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "type": "subtitle",
     "accuracy": "medium",
     "ratio": 0,

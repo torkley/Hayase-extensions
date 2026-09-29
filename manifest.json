@@ -3,7 +3,7 @@
   "id": "hayase.extension.fansubsru",
   "name": "Fansubs.ru (Russian)",
   "description": "Russian fansub subtitles from fansubs.ru (Kage Project). Searches the archive by title and resolves the matching release for the requested episode.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "subtitle",
   "accuracy": "medium",
   "icon": "https://raw.githubusercontent.com/torkley/Hayase-extensions/main/icon.svg",

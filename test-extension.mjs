@@ -10,7 +10,7 @@
  * `test()` gets no query, so it exercises the global-fetch fallback.
  */
 
-import FansubsRuSubtitles from "./script.js";
+import source from "./script.js";
 
 const OPTS = {
   resolverBase: "http://127.0.0.1:8787",
@@ -20,8 +20,21 @@ const OPTS = {
   preferredFormat: "any",
 };
 
+/**
+ * The default export must be an instance, not the class — Hayase calls
+ * methods straight off `module.default`. Assert that here so the harness
+ * fails loudly if the export shape ever regresses.
+ */
 function makeSource() {
-  return new FansubsRuSubtitles();
+  if (source instanceof Function) {
+    throw new Error(
+      "default export is a class, not an instance — Hayase calls mod.test() directly and would silently fail"
+    );
+  }
+  if (typeof source.test !== "function" || typeof source.single !== "function") {
+    throw new Error("default export is missing test()/single()");
+  }
+  return source;
 }
 
 /** Attach the host-supplied scope-bound fetch, exactly as Hayase would. */

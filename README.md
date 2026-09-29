@@ -29,6 +29,21 @@ per-extension metadata reference from the API docs.
 Hayase re-polls the manifest on every launch, so bumping `version` and pushing
 updates the extension without re-importing.
 
+**The default export must be an instance, not the class.** Hayase does
+`mod = module.default` and then calls `mod.test()` / `mod.single(...)`
+directly, so the export has to be an instance:
+
+```js
+export default new FansubsRuSubtitles();   // correct
+export default FansubsRuSubtitles;         // silently fails
+```
+
+Exporting the class makes every call throw on an unbound method. That
+rejection is swallowed by `downloadScripts`, which collects the id into
+`invalidIDs` and continues — so the import reports **nothing** and the
+extension simply never appears. The reference extensions use
+`export default new class SubsPlease { ... }()`.
+
 ## Manifest gotchas
 
 Two fields behave in ways the type definitions do not describe. Both cost a

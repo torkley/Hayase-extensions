@@ -447,5 +447,14 @@ function parseEpisodeRanges(label) {
   return ranges;
 }
 
-export default FansubsRuSubtitles;
+/**
+ * Hayase imports the module and calls methods on the default export directly
+ * (`this._state = { type, mod }` where `mod = module.default`, then
+ * `mod.test()` / `mod.single(...)`). The default export must therefore be an
+ * *instance*, not the class — the reference extensions ship
+ * `export default new class Foo { ... }()`. Exporting the class itself makes
+ * every call throw on an unbound method, and `downloadScripts` swallows the
+ * rejection, so the extension silently fails to appear.
+ */
+export default new FansubsRuSubtitles();
 

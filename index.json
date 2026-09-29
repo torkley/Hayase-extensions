@@ -12,7 +12,7 @@
     "icon": "https://raw.githubusercontent.com/torkley/Hayase-extensions/main/icon.svg",
     "update": "https://raw.githubusercontent.com/torkley/Hayase-extensions/main/index.json",
     "code": "https://raw.githubusercontent.com/torkley/Hayase-extensions/main/script.js",
-    "url": "http://fansubs.ru",
+    "url": "aHR0cDovL2ZhbnN1YnMucnU=",
     "rateLimit": 1,
     "options": {
       "resolverBase": {

@@ -18,8 +18,8 @@ that matters for installation is `index.json`; `manifest.json` is kept as the
 per-extension metadata reference from the API docs.
 
 1. Put `index.json` and `script.js` on any static host with CORS enabled
-   (GitHub raw URLs work). Update the `code` and `update` fields in
-   `index.json` to your own URLs.
+   (GitHub works). Update the `code` and `update` fields in `index.json` to
+   your own references.
 2. Start the resolver (see below).
 3. In Hayase: **Settings → Extensions → Repositories**, paste the URL of your
    `index.json`, click **Import Extensions**.
@@ -28,6 +28,40 @@ per-extension metadata reference from the API docs.
 
 Hayase re-polls the manifest on every launch, so bumping `version` and pushing
 updates the extension without re-importing.
+
+## Manifest gotchas
+
+Two fields behave in ways the type definitions do not describe. Both cost a
+failed import before they were found.
+
+**`url` must be base64, not a plain URL.** Hayase decodes it before use:
+
+```ts
+const urls = configs.filter(c => !!c.url).map(c => atob(c.url!))
+await this.codeManager.enableCORS(urls)
+```
+
+`atob` is called *before* `enableCORS`, whose own error handling is wrapped in
+a `try/catch` — so a plain URL aborts the whole import with:
+
+```
+Failed to execute 'atob' on 'Window': The string to be decoded is not correctly encoded.
+```
+
+The type comment calls it `// URL to enable CORS on the extension's API`, which
+reads as a plain URL, but the implementation wants base64. The official
+`LetMeGetAByte/Hayase-Extensions` entries omit `url` entirely, which is why they
+never hit this. `aHR0cDovL2ZhbnN1YnMucnU=` is `http://fansubs.ru`.
+
+**`update` and `code` accept a `gh:` prefix.** Hayase rewrites these through
+`esm.sh`, which resolves by commit and therefore is not subject to the CDN
+caching that makes `raw.githubusercontent.com` serve a stale manifest for a
+while after a push:
+
+```json
+"update": "gh:torkley/Hayase-extensions",
+"code":   "gh:torkley/Hayase-extensions/script"
+```
 
 ## Options
 

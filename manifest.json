@@ -8,10 +8,10 @@
   "accuracy": "medium",
   "icon": "https://raw.githubusercontent.com/torkley/Hayase-extensions/main/icon.svg",
   "media": "sub",
-  "code": "https://raw.githubusercontent.com/torkley/Hayase-extensions/main/script.js",
+  "code": "gh:torkley/Hayase-extensions/script",
   "languages": ["RU"],
   "url": "aHR0cDovL2ZhbnN1YnMucnU=",
-  "update": "https://raw.githubusercontent.com/torkley/Hayase-extensions/main/index.json",
+  "update": "gh:torkley/Hayase-extensions",
   "rateLimit": 1,
   "options": {
     "resolverBase": {

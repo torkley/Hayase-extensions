@@ -1,0 +1,44 @@
+{
+  "manifestVersion": 2,
+  "id": "fansubs-ru-subtitles",
+  "name": "Fansubs.ru (Russian)",
+  "description": "Russian fansub subtitles from fansubs.ru (Kage Project). Searches the archive by title and resolves the matching release for the requested episode.",
+  "version": "1.0.0",
+  "type": "subtitle",
+  "accuracy": "medium",
+  "icon": "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23151a2b'/%3E%3Cpath d='M14 22h36v6H14zm0 12h26v6H14zm0 12h32v6H14z' fill='%236ea8ff'/%3E%3C/svg%3E",
+  "media": "sub",
+  "code": "https://raw.githubusercontent.com/torkley/Hayase-extensions/main/script.js",
+  "languages": ["RU"],
+  "url": "http://fansubs.ru",
+  "update": "https://raw.githubusercontent.com/torkley/Hayase-extensions/main/index.json",
+  "rateLimit": 1,
+  "options": {
+    "resolverBase": {
+      "type": "string",
+      "description": "Base URL of the fansubs.ru unpacker resolver (see resolver/README.md). It converts the site's .rar/.7z release archives into direct subtitle file URLs. Set to 'direct' to return raw fansubs.ru archive URLs instead.",
+      "default": "http://localhost:8787"
+    },
+    "preferredFormat": {
+      "type": "select",
+      "description": "Preferred subtitle format. 'any' returns every matching release.",
+      "default": "any",
+      "values": ["any", "ass", "ssa", "srt"]
+    },
+    "searchRetries": {
+      "type": "number",
+      "description": "How many times to retry the search endpoint. fansubs.ru search is intermittently unreliable and often returns zero results on the first attempt.",
+      "default": 3
+    },
+    "useArchiveFallback": {
+      "type": "boolean",
+      "description": "When search returns nothing, fall back to browsing the A-Z archive index and matching titles locally. Slower but far more reliable.",
+      "default": true
+    },
+    "verifyAniDbId": {
+      "type": "boolean",
+      "description": "Verify candidates against the AniDB id linked on the anime page when the query provides one. Raises match accuracy at the cost of one extra request per candidate.",
+      "default": true
+    }
+  }
+}

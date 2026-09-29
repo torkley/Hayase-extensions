@@ -1,0 +1,210 @@
+# Hayase Extension API Specification
+
+## 1. Overview & Runtime Architecture
+
+Hayase extensions execute in a **sandboxed Web Worker environment**.
+
+* **Worker Constraints:** No direct DOM or browser API access. Standard network requests (via custom `fetch`) and JS utilities are permitted.
+
+
+* **Module Standard:** Extensions must be bundled into a single file and default-export a class/object extending the appropriate base class (`TorrentSource`, `NZBSource`, `WebSeedSource`, `SubtitleSource`).
+
+
+* **File Structure:** Every extension consists of two files: `manifest.json` (metadata/schema) and `script.js` (implementation).
+
+
+
+---
+
+## 2. Manifest Schema (`manifest.json`)
+
+The manifest configuration array requires `manifestVersion: 2`.
+
+```typescript
+interface ExtensionManifest {
+  manifestVersion: 2;                  // Must be set to 2
+  id: string;                          // Unique internal identifier
+  name: string;                        // UI display name
+  description: string;                 // Brief summary of functionality
+  version: string;                     // Version string for updates (e.g. "1.0.0")
+  type: 'torrent' | 'nzb' | 'subtitle' | 'http'; // Determines execution class
+  accuracy: 'high' | 'medium' | 'low'; // Accuracy rating: high (ID match), medium (ID mapped), low (string search)
+  icon: string;                        // URL to extension icon
+  media: 'sub' | 'dub' | 'both';       // Informational media classification
+  code: string;                        // CORS-enabled direct URL to bundled script JS
+  languages: CountryCodes[];          // Supported language/country codes (ISO 3166-1 alpha-2 or 'ALL')
+  deprecated?: boolean;                // Flag indicating if extension is deprecated
+  ratio?: 'perma' | number;            // Reserved / Not implemented
+  url?: string;                        // Base domain URL for CORS enablement
+  update?: string;                     // URL to manifest file to check for version increments
+  updatePeers?: boolean;               // Torrent-only: false = force client-side tracker scraping
+  rateLimit?: number;                  // Maximum allowed requests per second (auto-throttled by host)
+  options?: Record<string, ManifestOption>; // User-configurable settings schema
+}
+
+interface ManifestOption {
+  type: 'string' | 'number' | 'boolean' | 'select';
+  description: string;
+  default: string | number | boolean;
+  values?: any[];                       // Required if type is 'select'
+}
+
+```
+
+---
+
+## 3. Data Transfer Objects (DTOs) & Types
+
+```typescript
+// Base Query passed to search handlers
+interface AnimeQuery {
+  media: Record<string, any>;          // Raw AniList Media Object
+  anilistId: number;                   // Primary AniList identifier
+  anidbAid?: number;                   // AniDB Anime ID
+  anidbEid?: number;                   // AniDB Episode ID
+  tvdbId?: number;                     // TheTVDB Series ID
+  tvdbEId?: number;                    // TheTVDB Episode ID
+  imdbId?: string;                     // IMDb ID
+  tmdbId?: string;                     // TMDB ID
+  titles: string[];                    // Primary, native, and localized title strings
+  episode: number;                     // Target episode number
+  episodeCount?: number;               // Total series episode count
+  absoluteEpisodeNumber?: number;      // Continuous episode numbering across seasons
+  resolution: '2160' | '1080' | '720' | '540' | '480' | '';
+  exclusions: string[];                // Keywords to filter out (e.g., "x265", "web-dl")
+  fetch: typeof globalThis.fetch;      // Scope-bound fetch instance bypassing CORS restriction
+}
+
+// Specialized Queries
+type NZBQuery = {
+  hash: string;
+  name: string;
+} & Omit<AnimeQuery, 'resolution' | 'exclusions'> & ({ file: string } | { files: string[] });
+
+type WebSeedQuery = {
+  hash: string;
+  name: string;
+} & Omit<AnimeQuery, 'resolution' | 'exclusions'> & ({ file: WebSeedFile } | { files: WebSeedFile[] });
+
+type SubtitleQuery = Omit<AnimeQuery, 'resolution' | 'exclusions'>;
+
+// Specialized Results
+interface TorrentResult {
+  title: string;                       // Release name
+  link: string;                        // Magnet link, HTTP .torrent URL, or infoHash
+  seeders: number;                     // Active seeder count
+  leechers: number;                    // Active leecher count
+  downloads: number;                   // Total download count
+  accuracy: 'high' | 'medium' | 'low'; // Result-level accuracy override
+  hash: string;                        // Info Hash
+  size: number;                        // File size in bytes
+  date: Date;                          // Publication date
+  id?: number;                         // Provider result ID
+  type?: 'batch' | 'best' | 'alt';     // Flags verified batches or curated releases
+}
+
+type NZBResult = string;                // Direct/gzipped download URL to .nzb file
+
+interface WebSeedFile {
+  name: string;
+  index?: number;
+}
+
+interface WebSeedResult {
+  url: string;                         // Target file direct URL
+  authorization?: string;              // HTTP Auth header value (e.g. "Bearer <token>")
+  index?: number;                      // Matched WebSeedFile index
+  rateLimit?: number;                  // Maximum allowed requests per second
+}
+
+interface SubtitleResult {
+  url: string;                         // Direct URL to VTT, SRT, ASS, SSA, TXT
+  language: CountryCodes;              // Two-letter country/language code
+}
+
+type CountryCodes = 'ALL' | 'US' | 'JP' | 'KR' | 'CN' | 'RU' | 'FR' | 'DE' | 'ES' | 'GB' | string;
+type RuntimeOptions = Record<string, string | number | boolean>;
+
+```
+
+---
+
+## 4. Extension Class Contracts
+
+All implementations must declare `test()` alongside search handlers. Methods accept runtime option key-values as their second parameter (`options`).
+
+### A. `TorrentSource` (`type: "torrent"`)
+
+```typescript
+abstract class TorrentSource {
+  // Required health check: return true or throw descriptive error
+  abstract test(): Promise<true>; 
+
+  // Single episode lookup
+  single(query: AnimeQuery, options: RuntimeOptions): Promise<TorrentResult[] | undefined>;
+
+  // Batch / full season lookup
+  batch(query: AnimeQuery, options: RuntimeOptions): Promise<TorrentResult[] | undefined>;
+
+  // Feature movie lookup
+  movie(query: AnimeQuery, options: RuntimeOptions): Promise<TorrentResult[] | undefined>;
+}
+
+```
+
+### B. `NZBSource` (`type: "nzb"`)
+
+```typescript
+abstract class NZBSource {
+  abstract test(): Promise<true>;
+
+  single(query: NZBQuery, options: RuntimeOptions): Promise<NZBResult | undefined>;
+  batch(query: NZBQuery, options: RuntimeOptions): Promise<NZBResult | undefined>;
+}
+
+```
+
+### C. `WebSeedSource` (`type: "http"`)
+
+```typescript
+abstract class WebSeedSource {
+  abstract test(): Promise<true>;
+
+  single(query: WebSeedQuery, options: RuntimeOptions): Promise<WebSeedResult | undefined>;
+  batch(query: WebSeedQuery, options: RuntimeOptions): Promise<WebSeedResult[] | undefined>;
+}
+
+```
+
+### D. `SubtitleSource` (`type: "subtitle"`)
+
+```typescript
+abstract class SubtitleSource {
+  abstract test(): Promise<true>;
+
+  // Subtitles only support single episode lookups
+  single(query: SubtitleQuery, options: RuntimeOptions): Promise<SubtitleResult[] | undefined>;
+}
+
+```
+
+---
+
+## 5. Development Principles & Best Practices
+
+1. **Identifier Matching First:** Always prioritize metadata IDs (`anilistId`, `anidbAid`, `tvdbId`, `imdbId`, `tmdbId`) over fuzzy `titles` strings.
+
+
+2. **Exclusion Handling:** Ensure titles are explicitly checked against `query.exclusions` (e.g., filter out codecs like `"x265"` or releases like `"web-dl"` if present in the exclusion array).
+
+
+3. **CORS Network Requests:** Always use `query.fetch` instead of global `window.fetch` to ensure context credentials and CORS settings are correctly handled by the platform shell.
+
+
+4. **Error Propagation:** Throw clean, human-readable errors (`throw new Error("UI display message")`). These are intercepted and presented directly to the app user.
+
+
+5. **Offline Support:** Check connectivity via `navigator.isOnline`. If offline, serve hardcoded or locally cached query results.
+
+
+6. **Release Tagging Constraints:** Do not assign `"best"` or `"alt"` to `TorrentResult.type` unless manually verified against curated sources; do not dynamically predict these tags.

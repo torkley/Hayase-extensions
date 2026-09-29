@@ -1,0 +1,9 @@
+# Editor / tooling metadata
+.qodo/
+
+# Node
+node_modules/
+*.log
+
+# Resolver scratch
+resolver/tmp/

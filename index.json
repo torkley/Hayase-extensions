@@ -1,0 +1,46 @@
+[
+  {
+    "id": "hayase.extension.fansubsru",
+    "name": "Fansubs.ru (Russian)",
+    "version": "1.0.0",
+    "type": "subtitle",
+    "accuracy": "medium",
+    "ratio": 0,
+    "media": "sub",
+    "languages": ["RU"],
+    "description": "Russian fansub subtitles from fansubs.ru (Kage Project). Requires the unpacker resolver to be running - see README.md.",
+    "icon": "https://fansubs.ru/gif/1171218265.jpg",
+    "update": "https://raw.githubusercontent.com/torkley/Hayase-extensions/main/index.json",
+    "code": "https://raw.githubusercontent.com/torkley/Hayase-extensions/main/script.js",
+    "url": "http://fansubs.ru",
+    "rateLimit": 1,
+    "options": {
+      "resolverBase": {
+        "type": "string",
+        "description": "Base URL of the fansubs.ru unpacker resolver. Set to 'direct' to return raw fansubs.ru archive URLs instead.",
+        "default": "http://localhost:8787"
+      },
+      "preferredFormat": {
+        "type": "select",
+        "description": "Preferred subtitle format. 'any' returns every matching release.",
+        "default": "any",
+        "values": ["any", "ass", "ssa", "srt"]
+      },
+      "searchRetries": {
+        "type": "number",
+        "description": "Retries for the search endpoint, which intermittently drops results.",
+        "default": 3
+      },
+      "useArchiveFallback": {
+        "type": "boolean",
+        "description": "Browse the A-Z archive index when search returns nothing. Slower but far more reliable.",
+        "default": true
+      },
+      "verifyAniDbId": {
+        "type": "boolean",
+        "description": "Verify candidates against the AniDB id linked on the anime page when the query provides one.",
+        "default": true
+      }
+    }
+  }
+]

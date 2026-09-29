@@ -9,7 +9,7 @@
     "media": "sub",
     "languages": ["RU"],
     "description": "Russian fansub subtitles from fansubs.ru (Kage Project). Requires the unpacker resolver to be running - see README.md.",
-    "icon": "https://fansubs.ru/gif/1171218265.jpg",
+    "icon": "https://raw.githubusercontent.com/torkley/Hayase-extensions/main/icon.svg",
     "update": "https://raw.githubusercontent.com/torkley/Hayase-extensions/main/index.json",
     "code": "https://raw.githubusercontent.com/torkley/Hayase-extensions/main/script.js",
     "url": "http://fansubs.ru",
